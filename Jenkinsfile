@@ -6,9 +6,9 @@ pipeline {
     }
     
     environment {
-        // Dinamički postavite port na osnovu imena grane
+        // Dynamically set the port based on the branch name
         PORT = "${BRANCH_NAME == 'main' ? '3000' : '3001'}"
-        // Postavite ime Docker image-a na osnovu imena grane
+        // Set the Docker image name based on the branch name
         DOCKER_IMAGE_NAME = "node${BRANCH_NAME.toLowerCase()}:v1.0"
     }
     
@@ -16,8 +16,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                sh "echo 'Trenutna grana: ${BRANCH_NAME}'"
-                sh "echo 'Port koji će biti korišćen: ${PORT}'"
+                sh "echo 'Current branch: ${BRANCH_NAME}'"
+                sh "echo 'Port that will be used: ${PORT}'"
             }
         }
         
@@ -37,7 +37,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Kreirajte Dockerfile za aplikaciju
+                    // Create Dockerfile for the application
                     writeFile file: 'Dockerfile', text: """
                         FROM node:7.8.0-alpine
                         WORKDIR /app
@@ -57,14 +57,14 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // Zaustavite i obrišite SAMO kontejnere za TRENUTNI environment
+                    // Stop and remove ONLY containers for the CURRENT environment
                     sh "docker ps -q --filter ancestor=${DOCKER_IMAGE_NAME} | xargs -r docker stop"
                     sh "docker ps -a -q --filter ancestor=${DOCKER_IMAGE_NAME} | xargs -r docker rm"
                     
-                    // Pokrenite novi kontejner
+                    // Start a new container
                     sh "docker run -d -p ${PORT}:${PORT} ${DOCKER_IMAGE_NAME}"
                     
-                    echo "Aplikacija je uspešno deployed! Dostupna je na http://localhost:${PORT}"
+                    echo "Application successfully deployed! Available at http://localhost:${PORT}"
                 }
             }
         }
