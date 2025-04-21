@@ -55,18 +55,17 @@ pipeline {
         }
         
         stage('Deploy') {
-            steps {
-                script {
-                    // Zaustavite i obrišite postojeće kontejnere za trenutnu granu
-                    sh "docker ps -q --filter ancestor=${DOCKER_IMAGE_NAME} | xargs -r docker stop"
-                    sh "docker ps -a -q --filter ancestor=${DOCKER_IMAGE_NAME} | xargs -r docker rm"
-                    
-                    // Pokrenite novi kontejner
-                    sh "docker run -d -p ${PORT}:${PORT} ${DOCKER_IMAGE_NAME}"
-                    
-                    echo "Aplikacija je uspešno deployed! Dostupna je na http://localhost:${PORT}"
-                }
-            }
+    steps {
+        script {
+            // Zaustavite i obrišite SAMO kontejnere za TRENUTNI environment
+            sh "docker ps -q --filter ancestor=${DOCKER_IMAGE_NAME} | xargs -r docker stop"
+            sh "docker ps -a -q --filter ancestor=${DOCKER_IMAGE_NAME} | xargs -r docker rm"
+            
+            // Pokrenite novi kontejner
+            sh "docker run -d -p ${PORT}:${PORT} ${DOCKER_IMAGE_NAME}"
+            
+            echo "Aplikacija je uspešno deployed! Dostupna je na http://localhost:${PORT}"
         }
     }
+}
 }
